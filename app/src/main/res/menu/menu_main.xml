@@ -8,18 +8,15 @@
         android:orderInCategory="100"
         android:title="@string/History"
         android:onClick="actionHistoryClickHandler"
-        app:showAsAction="withText"
-        />
+        app:showAsAction="withText" />
     <item
         android:id="@+id/action_share"
         android:orderInCategory="101"
         android:title="@string/Share"
-        android:onClick="actionShareClickHandler"
-        />
+        android:onClick="actionShareClickHandler" />
 
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="102"
-        android:title="@string/action_settings"
-        />
+        android:title="@string/action_settings" />
 </menu>

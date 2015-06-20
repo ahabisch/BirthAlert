@@ -6,12 +6,15 @@
     <string name="Stop">Stop</string>
     <string name="Reset">Reset</string>
     <string name="History">History</string>
-    <string name="Connect">Connect</string>
+    <string name="Connect">Connect to Device</string>
     <string name="Share">Share</string>
     <string name="title_activity_history">History</string>
-
-    <string name="hello_world">Hello world!</string>
+    <string name="Live">Live Monitoring</string>
     <string name="title_activity_share">Share</string>
     <string name="HistoryText">History will be displayed here</string>
+    <string name="DataDisplay">Most recent contraction data will be displayed here (scrollable?)</string>
+    <string name="title_activity_live_data">LiveData</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>
