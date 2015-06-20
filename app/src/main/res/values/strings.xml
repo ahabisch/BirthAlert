@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">BirthAlertRev0</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="Start">Start</string>
+    <string name="Stop">Stop</string>
+    <string name="Reset">Reset</string>
+    <string name="History">History</string>
+    <string name="Connect">Connect</string>
+    <string name="Share">Share</string>
+    <string name="title_activity_history">History</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_share">Share</string>
+    <string name="HistoryText">History will be displayed here</string>
+
+</resources>
