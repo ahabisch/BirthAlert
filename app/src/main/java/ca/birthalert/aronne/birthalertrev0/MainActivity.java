@@ -14,6 +14,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
     }
 
     @Override
@@ -52,5 +53,10 @@ public class MainActivity extends ActionBarActivity {
     public void actionLiveClickHandler(View view) {
         Intent liveIntent = new Intent(this, LiveData.class);
         startActivity(liveIntent);
+    }
+
+    public void actionConnectClickHandler(View view) {
+        Intent connectIntent = new Intent(this, Connect.class);
+        startActivity(connectIntent);
     }
 }

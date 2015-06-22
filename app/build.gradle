@@ -24,4 +24,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile files('libs/androidplot-core-0.6.1.jar')
     compile 'com.androidplot:androidplot:0.6.1'
+    compile 'nl.littlerobots.bean:beanlib:0.9.4'
+    compile 'com.punchthrough.bean.sdk:sdk:1.0.1'
 }

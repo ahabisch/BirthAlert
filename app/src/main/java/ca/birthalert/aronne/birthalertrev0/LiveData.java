@@ -6,159 +6,141 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import com.androidplot.Plot;
-import com.androidplot.util.Redrawer;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
-import com.androidplot.xy.XYStepMode;
-
-import java.text.DecimalFormat;
-import java.util.Arrays;
 
 public class LiveData extends ActionBarActivity implements SensorEventListener {
 
-    private static final int HISTORY_SIZE = 300;            // number of points to plot in history
-    private SensorManager sensorMgr = null;
-    private Sensor orSensor = null;
-    private XYPlot aprLevelsPlot = null;
+    private SensorManager sensorManager;
+    private Sensor orSensor;
+    private static final int HISTORY_SIZE = 100;
+
     private XYPlot aprHistoryPlot = null;
 
-    //private SimpleXYSeries aprLevelsSeries = null;
-    private SimpleXYSeries aLvlSeries;
-    private SimpleXYSeries pLvlSeries;
-    private SimpleXYSeries rLvlSeries;
-    private SimpleXYSeries azimuthHistorySeries = null;
-    private SimpleXYSeries pitchHistorySeries = null;
-    private SimpleXYSeries rollHistorySeries = null;
-
-    private Redrawer redrawer;
-
+    private SimpleXYSeries azimuthHistorySeries;
+    private SimpleXYSeries pitchHistorySeries;
+    private SimpleXYSeries rollHistorySeries;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_data);
 
-        aLvlSeries = new SimpleXYSeries("A");
-        pLvlSeries = new SimpleXYSeries("P");
-        rLvlSeries = new SimpleXYSeries("R");
+        aprHistoryPlot = (XYPlot) findViewById(R.id.aprHistoryPlot);
 
-        // setup the APR History plot:
-        aprHistoryPlot = (XYPlot) findViewById(R.id.contractionMonitoring);
-
-        azimuthHistorySeries = new SimpleXYSeries("Az.");
+        azimuthHistorySeries = new SimpleXYSeries("Azimuth");
         azimuthHistorySeries.useImplicitXVals();
         pitchHistorySeries = new SimpleXYSeries("Pitch");
         pitchHistorySeries.useImplicitXVals();
         rollHistorySeries = new SimpleXYSeries("Roll");
         rollHistorySeries.useImplicitXVals();
 
+        aprHistoryPlot.getGraphWidget().getDomainGridLinePaint().setColor(Color.MAGENTA);
+        aprHistoryPlot.getGraphWidget().getRangeGridLinePaint().setColor(Color.MAGENTA);
+        aprHistoryPlot.getGraphWidget().getRangeSubGridLinePaint().setColor(Color.MAGENTA);
+        aprHistoryPlot.getGraphWidget().getGridBackgroundPaint().setColor(Color.WHITE);
+        aprHistoryPlot.getGraphWidget().getBackgroundPaint().setColor(Color.TRANSPARENT);
         aprHistoryPlot.setRangeBoundaries(-180, 359, BoundaryMode.FIXED);
-        aprHistoryPlot.setDomainBoundaries(0, HISTORY_SIZE, BoundaryMode.FIXED);
-        aprHistoryPlot.addSeries(azimuthHistorySeries,
-                new LineAndPointFormatter(
-                        Color.rgb(100, 100, 200), null, null, null));
-        aprHistoryPlot.addSeries(pitchHistorySeries,
-                new LineAndPointFormatter(
-                        Color.rgb(100, 200, 100), null, null, null));
-        aprHistoryPlot.addSeries(rollHistorySeries,
-                new LineAndPointFormatter(
-                        Color.rgb(200, 100, 100), null, null, null));
-        aprHistoryPlot.setDomainStepMode(XYStepMode.INCREMENT_BY_VAL);
-        aprHistoryPlot.setDomainStepValue(HISTORY_SIZE / 10);
+        aprHistoryPlot.setDomainBoundaries(0, 100, BoundaryMode.FIXED);
+        aprHistoryPlot.addSeries(azimuthHistorySeries, new LineAndPointFormatter(Color.rgb(100, 100, 200), Color.BLUE, null, null));
+        aprHistoryPlot.addSeries(pitchHistorySeries, new LineAndPointFormatter(Color.rgb(100, 200, 100), Color.GREEN, null, null));
+        aprHistoryPlot.addSeries(rollHistorySeries, new LineAndPointFormatter(Color.rgb(200, 100, 100), Color.RED, null, null));
+        aprHistoryPlot.setDomainStepValue(5);
         aprHistoryPlot.setTicksPerRangeLabel(3);
-        aprHistoryPlot.setDomainLabel("Sample Index");
+        aprHistoryPlot.setDomainLabel("Time");
         aprHistoryPlot.getDomainLabelWidget().pack();
         aprHistoryPlot.setRangeLabel("Angle (Degs)");
         aprHistoryPlot.getRangeLabelWidget().pack();
 
-        aprHistoryPlot.setRangeValueFormat(new DecimalFormat("#"));
-        aprHistoryPlot.setDomainValueFormat(new DecimalFormat("#"));
-
-
-        // register for orientation sensor events:
-        sensorMgr = (SensorManager) getApplicationContext().getSystemService(Context.SENSOR_SERVICE);
-        for (Sensor sensor : sensorMgr.getSensorList(Sensor.TYPE_ORIENTATION)) {
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        // orSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        //sensorManager.registerListener(this, orSensor, SensorManager.SENSOR_DELAY_NORMAL);}
+        for (Sensor sensor : sensorManager.getSensorList(Sensor.TYPE_ORIENTATION)) {
             if (sensor.getType() == Sensor.TYPE_ORIENTATION) {
                 orSensor = sensor;
             }
+
         }
 
-        //if we can't access the orientation sensor then exit:
         if (orSensor == null) {
-            System.out.println("Failed to attach to orSensor.");
+            System.out.println("Failed to attach to orientation sensor");
             cleanup();
         }
 
-        sensorMgr.registerListener(this, orSensor, SensorManager.SENSOR_DELAY_UI);
-
-        redrawer = new Redrawer(
-                Arrays.asList(new Plot[]{aprHistoryPlot, aprLevelsPlot}),
-                100, false);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        redrawer.start();
-    }
-
-    @Override
-    public void onPause() {
-        redrawer.pause();
-        super.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        redrawer.finish();
-        super.onDestroy();
+        sensorManager.registerListener(this, orSensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     private void cleanup() {
-        // aunregister with the orientation sensor before exiting:
-        sensorMgr.unregisterListener(this);
+        sensorManager.unregisterListener(this);
         finish();
     }
 
-    // Called whenever a new orSensor reading is taken.
     @Override
-    public synchronized void onSensorChanged(SensorEvent sensorEvent) {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_live_data, menu);
+        return true;
+    }
 
-        // update level data:
-        aLvlSeries.setModel(Arrays.asList(
-                        new Number[]{sensorEvent.values[0]}),
-                SimpleXYSeries.ArrayFormat.Y_VALS_ONLY);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
 
-        pLvlSeries.setModel(Arrays.asList(
-                        new Number[]{sensorEvent.values[1]}),
-                SimpleXYSeries.ArrayFormat.Y_VALS_ONLY);
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
 
-        rLvlSeries.setModel(Arrays.asList(
-                        new Number[]{sensorEvent.values[2]}),
-                SimpleXYSeries.ArrayFormat.Y_VALS_ONLY);
+        return super.onOptionsItemSelected(item);
+    }
 
-        // get rid the oldest sample in history:
+    @Override
+    public synchronized void onSensorChanged(SensorEvent event) {
+
+        // get rid of the oldest sample in history:
         if (rollHistorySeries.size() > HISTORY_SIZE) {
             rollHistorySeries.removeFirst();
             pitchHistorySeries.removeFirst();
             azimuthHistorySeries.removeFirst();
         }
 
-        // add the latest history sample:
-        azimuthHistorySeries.addLast(null, sensorEvent.values[0]);
-        pitchHistorySeries.addLast(null, sensorEvent.values[1]);
-        rollHistorySeries.addLast(null, sensorEvent.values[2]);
-    }
+        //add the latest history sample:
+        azimuthHistorySeries.addLast(null, event.values[0]);
+        pitchHistorySeries.addLast(null, event.values[1]);
+        rollHistorySeries.addLast(null, event.values[2]);
 
+        //redraw the plots:
+        aprHistoryPlot.redraw();
+
+    }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-        // Not interested in this event
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, orSensor, SensorManager.SENSOR_DELAY_FASTEST);
+    }
+
+
+
 }
